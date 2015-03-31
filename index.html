@@ -90,7 +90,7 @@
     
     <div id="preview">
         <div id="previewIframe">
-            <iframe src="htmlpreview.html" frameborder="0" id="showIframe" width="100%" height="100%" ></iframe>
+            <iframe src="about:blank" frameborder="0" id="showIframe" width="100%" height="100%" ></iframe>
         </div>
         <pre id="previewOutput" class="code" ace-mode="ace/mode/html" ace-theme="ace/theme/chrome" ace-gutter="true"></pre>
         <input type="button" onclick="openWin()" value="新窗口预览" id="openWinBtn">
@@ -305,8 +305,10 @@ function previewCode() {
     var iframeDoc;
     if (document.all) { // IE 
         iframeDoc = document.frames["showIframe"].document;
+        iframeWin = document.frames["showIframe"].window;
     } else { // 标准
         iframeDoc = document.getElementById("showIframe").contentDocument;
+        iframeWin = document.getElementById("showIframe").contentWindow;
     }
 
     function replaceCodeText(text) {
@@ -317,8 +319,17 @@ function previewCode() {
     }
 
     function show(text) {
-        iframeDoc.body.innerHTML = text;
-        iframeDoc.documentElement.click(); //触发iframe脚本运行
+        iframeDoc.documentElement.innerHTML = text;
+        iframeWin.evalScripts = function evalScripts(text) {
+            var script, scripts;
+            scripts = [];
+            var regexp = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+            while ((script = regexp.exec(text))) scripts.push(script[1]);
+            scripts = scripts.join('\n');
+
+            if (scripts)(iframeWin.execScript) ? iframeWin.execScript(scripts) : iframeWin.setTimeout(scripts, 0);
+        }
+        iframeWin.evalScripts(text);
         beautify(text, previewOutput);
         highLightCode();
         refreshOpenWin();
