@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <!-- style-start -->
+    <style>
+        * {
+            margin: 0;
+        }
+        
+        input {
+            margin: 40px 10px;
+            display: block;
+            width: 200px;
+            border: none;
+            border-bottom: 1px solid #1abc9c;
+            -webkit-transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+            transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+            background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 96%, #1abc9c 4%) no-repeat -200px 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #1abc9c 4%) no-repeat -200px 0;
+            background-size: 200px 100%;
+            box-sizing: border-box;
+        }
+        
+        input::-webkit-input-placeholder {
+            -webkit-transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        input:focus,
+        input:valid {
+            box-shadow: none;
+            outline: none;
+            background-position: 0 0;
+        }
+        
+        input:focus::-webkit-input-placeholder,
+        input:valid::-webkit-input-placeholder {
+            color: #1abc9c;
+            font-size: 11px;
+            -webkit-transform: translateY(-20px);
+            transform: translateY(-20px);
+            visibility: visible !important;
+        }
+        
+        .box input {
+            margin: 40px 10px;
+            display: block;
+            width: 300px;
+            border: none;
+            border-bottom: 1px solid #f36;
+            -webkit-transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+            transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+            background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 96%, #f36 4%) no-repeat -300px 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #f36 4%) no-repeat -300px 0;
+            background-size: 300px 100%;
+            box-sizing: border-box;
+        }
+        
+        .box input::-webkit-input-placeholder {
+            -webkit-transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .box input:focus,
+        .box input:valid {
+            box-shadow: none;
+            outline: none;
+            background-position: 0 0;
+        }
+        
+        .box input:focus::-webkit-input-placeholder,
+        .box input:valid::-webkit-input-placeholder {
+            color: #f36;
+            font-size: 11px;
+            -webkit-transform: translateY(-20px);
+            transform: translateY(-20px);
+            visibility: visible !important;
+        }
+    </style>
+    <!-- style-end -->
+</head>
+
+<body>
+    <!-- html-start -->
+    <input type="email" name="email" required placeholder="Email" />
+
+    <div class="box">
+        <input type="text" name="name" required placeholder="Name" />
+        <input type="email" name="email" required placeholder="Email" />
+        <input type="password" name="password" required placeholder="Password" />
+    </div>
+
+    <!-- html-end -->
+    <!-- script-start -->
+
+    <!-- script-end -->
+</body>
+
+</html>

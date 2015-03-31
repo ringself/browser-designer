@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>预览</title>
+    <script src="dist/innerhtml.js"></script>
+    <script>
+    var evalScriptHandler = function() {
+        var text = document.body.innerHTML;
+        console.log(text)
+        set_innerHTML('content', text);
+    }
+    window.onload = function(){
+    	document.removeEventListener('click', evalScriptHandler);
+    	document.addEventListener('click', evalScriptHandler);
+    	document.body.addEventListener('click', function(e) {
+	        e.preventDefault();
+	        e.stopPropagation();
+	    }, false);
+    }
+    
+    </script>
+</head>
+
+<body id="content">
+
+</body>
+
+</html>

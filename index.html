@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>browser-designer</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0
+    }
+    textarea {
+        float: left;
+        width: 40%;
+        height: 400px;
+    }
+    #credits {
+        clear: left;
+        padding-top: 10px;
+    }
+    #editor {
+        position: absolute;
+        width: 33%;
+        left: 0;
+        height: 50%;
+    }
+    #cssEditor {
+        position: absolute;
+        width: 33%;
+        left: 33%;
+        height: 50%;
+    }
+    #htmlEditor {
+        position: absolute;
+        width: 34%;
+        left: 66%;
+        height: 50%;
+    }
+    #preview {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        height: 50%;
+    }
+    #previewIframe {
+        position: absolute;
+        width: 50%;
+        left: 0;
+        height: 100%;
+        z-index: 2;
+    }
+    #previewOutput {
+        position: absolute;
+        width: 50%;
+        right: 0;
+        height: 100%;
+        overflow-y: auto;
+        z-index: 2;
+    }
+    #openWinBtn,#closeWinBtn,#showPreviewBtn,#hidPreviewBtn{
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 3;
+        opacity: .5;
+    }
+    #openWinBtn:hover,#closeWinBtn:hover,#showPreviewBtn:hover,#hidPreviewBtn:hover{
+        opacity: 1;
+    }
+    #showPreviewBtn,#hidPreviewBtn{
+        bottom: 20px;
+    }
+    .hid {
+        display: none;
+    }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div id="editor">
+
+    </div>
+    <div id="cssEditor">
+    </div>
+    <div id="htmlEditor">
+    </div>
+    
+    <div id="preview">
+        <div id="previewIframe">
+            <iframe src="htmlpreview.html" frameborder="0" id="showIframe" width="100%" height="100%" ></iframe>
+        </div>
+        <pre id="previewOutput" class="code" ace-mode="ace/mode/html" ace-theme="ace/theme/chrome" ace-gutter="true"></pre>
+        <input type="button" onclick="openWin()" value="新窗口预览" id="openWinBtn">
+        <input type="button" onclick="closeWin()" value="关闭窗口预览" id="closeWinBtn" style="display:none">
+        <input type="button" onclick="hidPreview()" value="收起预览" id="hidPreviewBtn">
+        <input type="button" onclick="showPreview()" value="展开预览" id="showPreviewBtn" style="display:none">
+    </div>
+
+    
+
+<textarea style="display:none;" id="hidSass">
+//支持引用基础库文件
+@import "sassmagic/helpers/mixins/_float.scss"; 
+.float{ 
+    @include float(left,false);    
+}
+.red{
+    color:red;
+}
+.fs20{
+    font-size:20px;
+}
+</textarea>
+<textarea style="display:none;" id="hidHtml">
+<p>
+    hello,
+</p>
+<p class="float red fs20">
+    world!
+</p>
+<script src="dist/test.js"></script>
+<script>
+    document.body.style.color = 'blue'
+</script>
+<script>
+    console.log('预览支持执行脚本')
+</script> 
+</textarea>
+<textarea style="display:none;" id="hidCss">
+.float {
+  float: left; 
+}
+
+.red {
+  color: red; 
+}
+
+.fs20 {
+  font-size: 20px; 
+}
+</textarea>
+
+
+<script src="dist/sass.worker.js"></script>
+<script src="dist/sassmap-sassmagic.js"></script>
+<script src="dist/util.js"></script>
+<script src="dist/innerhtml.js"></script>
+
+<!-- editor -->
+<script src="dist/editor/ace.js"></script>
+<script src="dist/editor/ext-static_highlight.js"></script>
+<script>
+var highlight = ace.require("ace/ext/static_highlight")
+var dom = ace.require("ace/lib/dom")
+</script>
+
+<!-- beautify.js -->
+<script src="dist/beautify/beautify.js"></script>
+<script src="dist/beautify/beautify-css.js"></script>
+<script src="dist/beautify/beautify-html.js"></script>
+<script type="text/javascript">
+var the = {
+    beautify_in_progress: false,
+    editor: null // codemirror editor
+};
+
+function looks_like_html(source) {
+    // <foo> - looks like html
+    // <!--\nalert('foo!');\n--> - doesn't look like html
+
+    var trimmed = source.replace(/^[ \t\n\r]+/, '');
+    var comment_mark = '<' + '!-' + '-';
+    return (trimmed && (trimmed.substring(0, 1) === '<' && trimmed.substring(0, 4) !== comment_mark));
+}
+
+function looks_like_css(source) {
+    // a{width:100px} - looks like css
+    // <!--\nalert('foo!');\n--> - doesn't look like html
+
+    var islick = source.match(/(\w+)\s*{([\s\t\n\r]+)(([^\t\n\r}]+)([\t\n\r]+))*}/g);
+    return islick !== null && !/function/g.test(source);
+}
+
+function beautify(source, output, callback) {
+    if (the.beautify_in_progress) return;
+
+    // store_settings_to_cookie();
+
+    the.beautify_in_progress = true;
+
+    var source,
+        formatStr,
+        opts = {
+            "indent_size": 4,
+            "indent_char": " ",
+            "eol": "\n",
+            "indent_level": 0,
+            "indent_with_tabs": false,
+            "preserve_newlines": true,
+            "max_preserve_newlines": 10,
+            "jslint_happy": false,
+            "space_after_anon_function": false,
+            "brace_style": "collapse",
+            "keep_array_indentation": false,
+            "keep_function_indentation": false,
+            "space_before_conditional": true,
+            "break_chained_methods": false,
+            "eval_code": false,
+            "unescape_strings": false,
+            "wrap_line_length": 0,
+            "wrap_attributes": "auto",
+            "wrap_attributes_indent_size": 4,
+            "end_with_newline": false
+        }
+
+    if (looks_like_html(source)) {
+        output.setAttribute('ace-mode', 'ace/mode/html');
+        formatedStr = html_beautify(source, opts);
+    } else if (looks_like_css(source)) {
+        // if ($('#detect-packers').prop('checked')) {
+        //     source = unpacker_filter(source);
+        // }
+        output.setAttribute('ace-mode', 'ace/mode/css');
+        formatedStr = css_beautify(source, opts);
+    } else {
+        output.setAttribute('ace-mode', 'ace/mode/javascript');
+        formatedStr = js_beautify(source, opts);
+    }
+    // if (the.editor) {
+    //     the.editor.setValue(output);
+    // }
+
+    the.beautify_in_progress = false;
+    // callback && callback(formatedStr,output,highLightCode);
+    output.innerText = formatedStr;
+    window.outputBeautifySource = formatedStr;
+    return formatedStr;
+}
+</script>
+
+<!-- 页面交互 -->
+<script>
+var OpenWindow;
+
+function closeWin() {
+    OpenWindow.close();
+    document.getElementById('closeWinBtn').style.display = 'none';
+    document.getElementById('openWinBtn').style.display = 'block';
+}
+
+function openWin() {
+    OpenWindow = window.open("", "newwin", "height=568, width=320,toolbar=yes,scrollbars=no,menubar=no,location=no,top=0,left=0");
+    OpenWindow.document.close();
+
+    OpenWindow.window.evalScripts = function evalScripts(text) {
+        var script, scripts;
+        scripts = [];
+        var regexp = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+        while ((script = regexp.exec(text))) scripts.push(script[1]);
+        scripts = scripts.join('\n');
+
+        if (scripts)(OpenWindow.window.execScript) ? OpenWindow.window.execScript(scripts) : OpenWindow.window.setTimeout(scripts, 0);
+    }
+
+    refreshOpenWin();
+    document.getElementById('openWinBtn').style.display = 'none';
+    document.getElementById('closeWinBtn').style.display = 'block';
+}
+
+function refreshOpenWin() {
+    if (OpenWindow && OpenWindow.window) {
+        OpenWindow.document.documentElement.innerHTML = window.outputBeautifySource;
+        OpenWindow.window.evalScripts(window.outputBeautifySource);
+    }
+}
+
+function hidPreview() {
+    document.getElementById('hidPreviewBtn').style.display = 'none';
+    document.getElementById('showPreviewBtn').style.display = 'block';
+    document.getElementById('previewOutput').style.width = "100%";
+}
+
+function showPreview() {
+    document.getElementById('hidPreviewBtn').style.display = 'block';
+    document.getElementById('showPreviewBtn').style.display = 'none';
+    document.getElementById('previewOutput').style.width = '';
+}
+</script>
+
+<!-- 预览代码 -->
+<script>
+function previewCode() {
+    var previewIframe = document.getElementById('previewIframe');
+    var previewOutput = document.getElementById('previewOutput');
+    var previewCssText = cssEditor.getValue();
+    var previewHtmlText = htmlEditor.getValue();
+    var html = previewHtmlText.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '');
+    var scripts = previewHtmlText.match(/<script[^>]*>([\s\S]*?)<\/script>/gi) || [];
+    //ajax模板页面
+    var previewCodeText = util.get('htmltemplate.html', replaceCodeText);
+    // var previewCodeText = replaceCodeText(iframeDoc.body.innerHTML);
+    var iframeDoc;
+    if (document.all) { // IE 
+        iframeDoc = document.frames["showIframe"].document;
+    } else { // 标准
+        iframeDoc = document.getElementById("showIframe").contentDocument;
+    }
+
+    function replaceCodeText(text) {
+        text = text.replace(/{{css}}/, previewCssText)
+            .replace(/{{script}}/, scripts.join('\n'))
+            .replace(/{{html}}/, html)
+        show(text);
+    }
+
+    function show(text) {
+        iframeDoc.body.innerHTML = text;
+        iframeDoc.documentElement.click(); //触发iframe脚本运行
+        beautify(text, previewOutput);
+        highLightCode();
+        refreshOpenWin();
+    }
+
+    function highLightCode() {
+        highlight(previewOutput, {
+            mode: previewOutput.getAttribute("ace-mode"),
+            theme: previewOutput.getAttribute("ace-theme"),
+            startLineNumber: 1,
+            showGutter: previewOutput.getAttribute("ace-gutter"),
+            trim: true
+        }, function(highlighted) {
+
+        });
+    }
+
+
+
+}
+</script>
+
+<!-- 编辑器初始化 -->
+<script>
+var cssEditor = ace.edit("cssEditor");
+cssEditor.setTheme("ace/theme/monokai");
+cssEditor.getSession().setMode("ace/mode/css");
+cssEditor.setValue(document.getElementById('hidCss').value);
+cssEditor.getSession().on('change', function(e) {
+    console.log(e.data);
+    previewCode();
+    // compileCode(input.getValue(),output,highLightCode);
+});
+</script>
+<script>
+var htmlEditor = ace.edit("htmlEditor");
+htmlEditor.setTheme("ace/theme/monokai");
+htmlEditor.getSession().setMode("ace/mode/html");
+htmlEditor.setValue(document.getElementById('hidHtml').value);
+htmlEditor.getSession().on('change', function(e) {
+    console.log(e.data);
+    previewCode();
+    // compileCode(input.getValue(),output,highLightCode);
+});
+</script>
+<script>
+var inputEditor = ace.edit("editor");
+var input = inputEditor;
+var output = cssEditor;
+
+inputEditor.setTheme("ace/theme/monokai");
+inputEditor.getSession().setMode("ace/mode/scss");
+inputEditor.setValue(document.getElementById('hidSass').value);
+inputEditor.getSession().on('change', function(e) {
+    console.log(e.data);
+    compileCode(input.getValue(), output);
+});
+
+Sass.initialize('dist/worker.min.js');
+// Sass.writeFile('demo.scss', '.imported::after { content: "yeah, file support!"; }');
+Sass.options({
+    comments: true
+});
+
+
+/**
+ * [compileCode 编译sass代码]
+ * @param  {[string]} str [待编译字符串]
+ * @param  {[el]} output [输出dom节点]
+ * @return {[type]}        [description]
+ */
+function compileCode(str, output, callback) {
+    Sass.compile(str, function(result) {
+        // var outputEditor = ace.edit("output");
+        // outputEditor.setTheme("ace/theme/monokai");
+        // outputEditor.getSession().setMode("ace/mode/css");
+        if (typeof result !== 'string') {
+            // outputEditor.setValue('Error on line ' + result.line + ':\n' + result.message);
+            output.setValue('Error on line ' + result.line + ':\n' + result.message);
+            callback && callback();
+        } else {
+            // outputEditor.setValue(result);
+            // result = result.replace(/}\n/g,"}");
+            result = result.replace(/(.*)}(\s*)/g, "$1\n}\n\n");
+            output.setValue(result);
+            callback && callback();
+        }
+    });
+}
+
+
+//sass.js 设置style
+Sass.options({
+    // format output: nested, expanded, compact, compressed
+    style: Sass.style.expanded,
+    // add line comments to output: none, default
+    comments: Sass.comments.none
+}, function callback() {});
+
+
+// sass.js test
+// Sass.writeFile('one.scss', '.one { width: 123px; }');
+// Sass.writeFile('some-dir/two.scss', '.two { width: 123px; }');
+// Sass.compile('@import "one"; @import "some-dir/two";', function(result) {
+//     console.log(result);
+// });
+
+//preload lib file
+Sass.preloadFiles(Sass.maps.sassmagic.base, Sass.maps.sassmagic.directory, Sass.maps.sassmagic.files, function(d) {
+    //初始化编译一次代码
+    setTimeout(previewCode, 0);
+});
+
+</script>
+</body>
+
+</html>

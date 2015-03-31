@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Sass editor in the browser</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0
+    }
+    textarea {
+        float: left;
+        width: 40%;
+        height: 400px;
+    }
+    #credits {
+        clear: left;
+        padding-top: 10px;
+    }
+    #editor {
+        position: absolute;
+        width: 33%;
+        left: 0;
+        height: 50%;
+    }
+    #cssEditor {
+        position: absolute;
+        width: 33%;
+        left: 33%;
+        height: 50%;
+    }
+    #htmlEditor {
+        position: absolute;
+        width: 34%;
+        left: 66%;
+        height: 50%;
+    }
+    #preview {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        height: 50%;
+    }
+    #previewIframe {
+        position: absolute;
+        width: 50%;
+        left: 0;
+        height: 100%;
+        z-index: 2;
+    }
+    #previewOutput {
+        position: absolute;
+        width: 50%;
+        right: 0;
+        height: 100%;
+        overflow-y: auto;
+        z-index: 2;
+    }
+    #openWinBtn,#closeWinBtn,#showPreviewBtn,#hidPreviewBtn{
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 3;
+        opacity: .5;
+    }
+    #openWinBtn:hover,#closeWinBtn:hover,#showPreviewBtn:hover,#hidPreviewBtn:hover{
+        opacity: 1;
+    }
+    #showPreviewBtn,#hidPreviewBtn{
+        bottom: 20px;
+    }
+    .hid {
+        display: none;
+    }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div id="editor">
+
+    </div>
+    <div id="cssEditor">
+    </div>
+    <div id="htmlEditor">
+    </div>
+    <!-- <pre id="output" class="code" ace-mode="ace/mode/css" ace-theme="ace/theme/chrome"></pre> -->
+    <div id="preview">
+        <div id="previewIframe">
+            <iframe src="htmlpreview2.html" frameborder="0" id="showIframe" width="100%" height="100%" ></iframe>
+        </div>
+        <pre id="previewOutput" class="code" ace-mode="ace/mode/html" ace-theme="ace/theme/chrome" ace-gutter="true"></pre>
+        <input type="button" onclick="openWin()" value="新窗口预览" id="openWinBtn">
+        <input type="button" onclick="closeWin()" value="关闭窗口预览" id="closeWinBtn" style="display:none">
+        <input type="button" onclick="hidPreview()" value="收起预览" id="hidPreviewBtn">
+        <input type="button" onclick="showPreview()" value="展开预览" id="showPreviewBtn" style="display:none">
+    </div>
+
+    <script src="dist/sass.worker.js"></script>
+    <script src="dist/sassmap-sassmagic.js"></script>
+    <script src="dist/util.js"></script>
+    <script src="dist/innerhtml.js"></script>
+
+    <script src="dist/editor/ace.js"></script>
+    <script type="text/javascript">
+    // Using the Sass.js API
+
+    // compile text to SCSS
+    // Sass.compile(text, function callback(result) {
+    //     // (string) result is the compiled CSS
+    // });
+
+    // // set compile style options
+    // Sass.options({
+    //     // format output: nested, expanded, compact, compressed
+    //     style: Sass.style.nested,
+    //     // add line comments to output: none, default
+    //     comments: Sass.comments.none
+    // }, function callback() {});
+
+    // // register a file to be available for @import
+    // Sass.writeFile(filename, text, function callback(success) {
+    //     // (boolean) success is
+    //     //   `true` when the write was OK,
+    //     //   `false` when it failed
+    // });
+
+    // // remove a file
+    // Sass.removeFile(filename, function callback(success) {
+    //     // (boolean) success is
+    //     //   `true` when deleting the file was OK,
+    //     //   `false` when it failed
+    // });
+
+    // // get a file's content
+    // Sass.readFile(filename, function callback(content) {
+    //     // (string) content is the file's content,
+    //     //   `undefined` when the read failed
+    // });
+
+    // // list all files (regardless of directory structure)
+    // Sass.listFiles(function callback(list) {
+    //     // (array) list contains the paths of all registered files
+    // });
+
+    // // preload a set of files
+    // // see chapter »Working With Files« below
+    // Sass.preloadFiles(remoteUrlBase, localDirectory, filesMap, callback);
+
+    // // register a set of files to be (synchronously) loaded when required
+    // // see chapter »Working With Files« below
+    // Sass.lazyFiles(remoteUrlBase, localDirectory, filesMap, callback);
+    </script>
+
+
+    <textarea style="display:none;" id="hidSass">
+@mixin form-control($width:200px,$color:#1abc9c){
+  input{
+    margin: 40px 10px;
+    display: block;
+    width: $width;
+    border: none;
+    border-bottom: 1px solid $color;
+    -webkit-transition: all 0.3s cubic-bezier(.64,.09,.08,1);
+        transition: all 0.3s cubic-bezier(.64,.09,.08,1);
+        background: -webkit-linear-gradient(bottom, rgba(255,255,255,0) 96%, $color 4%) no-repeat  (-($width)) 0;
+        background: linear-gradient(to bottom, rgba(255,255,255,0) 96%, $color 4%) no-repeat (-($width)) 0;
+    background-size: $width 100%;
+    box-sizing: border-box;
+    
+    &::-webkit-input-placeholder{
+      -webkit-transition: all 0.3s ease-in-out;
+        transition: all 0.3s ease-in-out;
+    }
+    &:focus,
+    &:valid {
+      box-shadow: none;
+            outline: none;
+            background-position: 0 0;
+            
+            &::-webkit-input-placeholder{
+              color: $color;
+              font-size: 11px;
+            -webkit-transform: translateY(-20px);
+            transform: translateY(-20px);
+            visibility: visible !important;
+            }
+    }
+  }
+}
+*{margin:0;};
+@include form-control;
+.box {
+  @include form-control(300px, #f36);
+}
+</textarea>
+<textarea style="display:none;" id="hidHtml">
+<input type="email" name="email" required placeholder="Email" />
+
+<div class="box">
+  <input type="text" name="name" required placeholder="Name" />
+  <input type="email" name="email" required placeholder="Email" />
+  <input type="password" name="password" required placeholder="Password" />
+</div>
+</textarea>
+<textarea style="display:none;" id="hidCss">
+*{
+    margin:0;
+}
+input {
+  margin: 40px 10px;
+  display: block;
+  width: 200px;
+  border: none;
+  border-bottom: 1px solid #1abc9c;
+  -webkit-transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+  transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+  background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 96%, #1abc9c 4%) no-repeat -200px 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #1abc9c 4%) no-repeat -200px 0;
+  background-size: 200px 100%;
+  box-sizing: border-box; 
+}
+
+input::-webkit-input-placeholder {
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out; 
+}
+
+input:focus, input:valid {
+    box-shadow: none;
+    outline: none;
+    background-position: 0 0; 
+}
+
+input:focus::-webkit-input-placeholder, input:valid::-webkit-input-placeholder {
+      color: #1abc9c;
+      font-size: 11px;
+      -webkit-transform: translateY(-20px);
+      transform: translateY(-20px);
+      visibility: visible !important; 
+}
+
+.box input {
+  margin: 40px 10px;
+  display: block;
+  width: 300px;
+  border: none;
+  border-bottom: 1px solid #f36;
+  -webkit-transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+  transition: all 0.3s cubic-bezier(.64, .09, .08, 1);
+  background: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 96%, #f36 4%) no-repeat -300px 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #f36 4%) no-repeat -300px 0;
+  background-size: 300px 100%;
+  box-sizing: border-box; 
+}
+
+.box input::-webkit-input-placeholder {
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out; 
+}
+
+.box input:focus, .box input:valid {
+    box-shadow: none;
+    outline: none;
+    background-position: 0 0; 
+}
+
+.box input:focus::-webkit-input-placeholder, .box input:valid::-webkit-input-placeholder {
+      color: #f36;
+      font-size: 11px;
+      -webkit-transform: translateY(-20px);
+      transform: translateY(-20px);
+      visibility: visible !important; 
+}
+
+
+</textarea>
+
+
+            <script src="dist/editor/ext-static_highlight.js"></script>
+            <script>
+            var highlight = ace.require("ace/ext/static_highlight")
+            var dom = ace.require("ace/lib/dom")
+
+            // function qsa(sel) {
+            //     return Array.apply(null, document.querySelectorAll(sel));
+            // }
+
+            // function highLightCode() {
+            //     qsa(".code").forEach(function(codeEl) {
+            //         highlight(codeEl, {
+            //             mode: codeEl.getAttribute("ace-mode"),
+            //             theme: codeEl.getAttribute("ace-theme"),
+            //             startLineNumber: 1,
+            //             showGutter: codeEl.getAttribute("ace-gutter"),
+            //             trim: true
+            //         }, function(highlighted) {
+
+            //         });
+            //     });
+            // }
+            </script>
+            <!-- beautify.js -->
+            <script src="dist/beautify/beautify.js"></script>
+            <script src="dist/beautify/beautify-css.js"></script>
+            <script src="dist/beautify/beautify-html.js"></script>
+            <script type="text/javascript">
+            var the = {
+                beautify_in_progress: false,
+                editor: null // codemirror editor
+            };
+            function looks_like_html(source) {
+                // <foo> - looks like html
+                // <!--\nalert('foo!');\n--> - doesn't look like html
+
+                var trimmed = source.replace(/^[ \t\n\r]+/, '');
+                var comment_mark = '<' + '!-' + '-';
+                return (trimmed && (trimmed.substring(0, 1) === '<' && trimmed.substring(0, 4) !== comment_mark));
+            }
+            function looks_like_css(source) {
+                // a{width:100px} - looks like css
+                // <!--\nalert('foo!');\n--> - doesn't look like html
+
+                var islick = source.match(/(\w+)\s*{([\s\t\n\r]+)(([^\t\n\r}]+)([\t\n\r]+))*}/g);
+                return islick !== null && !/function/g.test(source);
+            }
+            function beautify(source,output,callback) {
+                if (the.beautify_in_progress) return;
+
+                // store_settings_to_cookie();
+
+                the.beautify_in_progress = true;
+
+                var source,
+                    formatStr,
+                    opts = {
+                        "indent_size": 4,
+                        "indent_char": " ",
+                        "eol": "\n",
+                        "indent_level": 0,
+                        "indent_with_tabs": false,
+                        "preserve_newlines": true,
+                        "max_preserve_newlines": 10,
+                        "jslint_happy": false,
+                        "space_after_anon_function": false,
+                        "brace_style": "collapse",
+                        "keep_array_indentation": false,
+                        "keep_function_indentation": false,
+                        "space_before_conditional": true,
+                        "break_chained_methods": false,
+                        "eval_code": false,
+                        "unescape_strings": false,
+                        "wrap_line_length": 0,
+                        "wrap_attributes": "auto",
+                        "wrap_attributes_indent_size": 4,
+                        "end_with_newline": false
+                    }
+
+                if (looks_like_html(source)) {
+                    output.setAttribute('ace-mode','ace/mode/html');
+                    formatedStr = html_beautify(source, opts);
+                } else if(looks_like_css(source)) {
+                    // if ($('#detect-packers').prop('checked')) {
+                    //     source = unpacker_filter(source);
+                    // }
+                    output.setAttribute('ace-mode','ace/mode/css');
+                    formatedStr = css_beautify(source, opts);
+                }
+                else{
+                    output.setAttribute('ace-mode','ace/mode/javascript');
+                    formatedStr = js_beautify(source, opts);
+                }
+                // if (the.editor) {
+                //     the.editor.setValue(output);
+                // }
+
+                the.beautify_in_progress = false;
+                // callback && callback(formatedStr,output,highLightCode);
+                output.innerText = formatedStr;
+                window.outputBeautifySource = formatedStr;
+                return formatedStr;
+            }
+            </script>
+            <script>
+            var OpenWindow;
+            function closeWin(){
+                OpenWindow.close();
+                document.getElementById('closeWinBtn').style.display = 'none';
+                document.getElementById('openWinBtn').style.display = 'block';
+            }
+            function openWin() {
+                OpenWindow = window.open("", "newwin", "height=568, width=320,toolbar=yes,scrollbars=no,menubar=no,location=no,top=0,left=0");
+                OpenWindow.document.close();
+
+                OpenWindow.window.evalScripts = function evalScripts(text){
+                    var script, scripts;
+                    scripts = [];
+                    var regexp = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+                    while ((script = regexp.exec(text))) scripts.push(script[1]);
+                    scripts = scripts.join('\n');
+                 
+                    if (scripts) (OpenWindow.window.execScript) ? OpenWindow.window.execScript(scripts) : OpenWindow.window.setTimeout(scripts, 0);
+                }
+
+                refreshOpenWin();
+                document.getElementById('openWinBtn').style.display = 'none';
+                document.getElementById('closeWinBtn').style.display = 'block';
+            }
+
+            function refreshOpenWin(){
+                if(OpenWindow && OpenWindow.window){
+                    OpenWindow.document.documentElement.innerHTML = window.outputBeautifySource;
+                    OpenWindow.window.evalScripts(window.outputBeautifySource);
+                }
+            }
+
+            function hidPreview(){
+                document.getElementById('hidPreviewBtn').style.display = 'none';
+                document.getElementById('showPreviewBtn').style.display = 'block';
+                document.getElementById('previewOutput').style.width = "100%";
+            }
+
+            function showPreview(){
+                document.getElementById('hidPreviewBtn').style.display = 'block';
+                document.getElementById('showPreviewBtn').style.display = 'none';
+                document.getElementById('previewOutput').style.width = '';
+            }
+            </script>
+            <script>
+            function previewCode() {
+                var previewIframe = document.getElementById('previewIframe');
+                var previewOutput = document.getElementById('previewOutput');
+                var previewCssText = cssEditor.getValue();
+                var previewHtmlText = htmlEditor.getValue();
+                var html = previewHtmlText.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi,'');
+                var scripts = previewHtmlText.match(/<script[^>]*>([\s\S]*?)<\/script>/gi) ||[];
+                //ajax模板页面
+                var previewCodeText = util.get('htmltemplate.html', replaceCodeText);
+                // var previewCodeText = replaceCodeText(iframeDoc.body.innerHTML);
+                var iframeDoc;
+                if (document.all){ // IE 
+                    iframeDoc = document.frames["showIframe"].document; 
+                }else{ // 标准
+                    iframeDoc = document.getElementById("showIframe").contentDocument; 
+                }
+
+                function replaceCodeText(text) {
+                    text = text.replace(/{{css}}/, previewCssText)
+                               .replace(/{{script}}/, scripts.join('\n'))
+                               .replace(/{{html}}/, html)
+                    show(text);
+                }
+                function show(text){
+                    iframeDoc.body.innerHTML = text;
+                    iframeDoc.documentElement.click();//触发iframe脚本运行
+                    beautify(text,previewOutput);
+                    highLightCode();
+                    refreshOpenWin();
+                }
+                function highLightCode(){
+                    highlight(previewOutput, {
+                        mode: previewOutput.getAttribute("ace-mode"),
+                        theme: previewOutput.getAttribute("ace-theme"),
+                        startLineNumber: 1,
+                        showGutter: previewOutput.getAttribute("ace-gutter"),
+                        trim: true
+                    }, function(highlighted) {
+
+                    });
+                }
+                
+    
+
+            }
+            </script>
+            <script>
+            var cssEditor = ace.edit("cssEditor");
+            cssEditor.setTheme("ace/theme/monokai");
+            cssEditor.getSession().setMode("ace/mode/css");
+            cssEditor.setValue(document.getElementById('hidCss').value);
+            cssEditor.getSession().on('change', function(e) {
+                console.log(e.data);
+                previewCode();
+                // compileCode(input.getValue(),output,highLightCode);
+            });
+            </script>
+            <script>
+            var htmlEditor = ace.edit("htmlEditor");
+            htmlEditor.setTheme("ace/theme/monokai");
+            htmlEditor.getSession().setMode("ace/mode/html");
+            htmlEditor.setValue(document.getElementById('hidHtml').value);
+            htmlEditor.getSession().on('change', function(e) {
+                console.log(e.data);
+                previewCode();
+                // compileCode(input.getValue(),output,highLightCode);
+            });
+            </script>
+            <script>
+            var inputEditor = ace.edit("editor");
+            var input = inputEditor;
+            var output = cssEditor;
+
+            inputEditor.setTheme("ace/theme/monokai");
+            inputEditor.getSession().setMode("ace/mode/scss");
+            inputEditor.setValue(document.getElementById('hidSass').value);
+            inputEditor.getSession().on('change', function(e) {
+                console.log(e.data);
+                compileCode(input.getValue(), output);
+            });
+
+            Sass.initialize('dist/worker.min.js');
+            Sass.writeFile('demo.scss', '.imported::after { content: "yeah, file support!"; }');
+            Sass.options({
+                comments: true
+            });
+
+
+
+            /**
+             * [compileCode 编译sass代码]
+             * @param  {[string]} str [待编译字符串]
+             * @param  {[el]} output [输出dom节点]
+             * @return {[type]}        [description]
+             */
+            function compileCode(str, output, callback) {
+                Sass.compile(str, function(result) {
+                    // var outputEditor = ace.edit("output");
+                    // outputEditor.setTheme("ace/theme/monokai");
+                    // outputEditor.getSession().setMode("ace/mode/css");
+                    if (typeof result !== 'string') {
+                        // outputEditor.setValue('Error on line ' + result.line + ':\n' + result.message);
+                        output.setValue('Error on line ' + result.line + ':\n' + result.message);
+                        callback && callback();
+                    } else {
+                        // outputEditor.setValue(result);
+                        // result = result.replace(/}\n/g,"}");
+                        result = result.replace(/(.*)}(\s*)/g,"$1\n}\n\n");
+                        output.setValue(result);
+                        callback && callback();
+                    }
+                });
+            }
+
+
+            //style
+            Sass.options({
+                // format output: nested, expanded, compact, compressed
+                style: Sass.style.expanded,
+                // add line comments to output: none, default
+                comments: Sass.comments.none
+            }, function callback() {});
+
+
+            // test
+            Sass.writeFile('one.scss', '.one { width: 123px; }');
+            Sass.writeFile('some-dir/two.scss', '.two { width: 123px; }');
+            Sass.compile('@import "one"; @import "some-dir/two";', function(result) {
+                console.log(result);
+            });
+
+            //load file
+            Sass.preloadFiles(Sass.maps.sassmagic.base, Sass.maps.sassmagic.directory, Sass.maps.sassmagic.files, function(d) {
+                console.log(d)
+            });
+
+
+            setTimeout(previewCode,500);
+            </script>
+    
+</body>
+
+</html>
