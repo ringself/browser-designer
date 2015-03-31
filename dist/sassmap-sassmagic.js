@@ -7,7 +7,7 @@
   // files map for sassmagic 
   Sass.maps.sassmagic = {
     directory: 'sassmagic',
-    base: '/dist/stylesheets/sassmagic',
+    base: 'dist/stylesheets/sassmagic',
     files: [
       'helpers/mixins/_backgroundTransparent.scss',
       'helpers/mixins/_ellipsis-overflow.scss',
